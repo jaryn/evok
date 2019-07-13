@@ -575,15 +575,21 @@ class UartBoard(object):
         counter = 0
         while counter < max_count:
             board_val_reg = m_feature['start_reg']
-            _reg = Register("%s_%02d" % (self.circuit, board_val_reg + counter), self, counter, board_val_reg + counter, dev_id=self.dev_id,
-                            major_group=0, legacy_mode=self.legacy_mode)
+            if 'reg_type' in m_feature and m_feature['reg_type'] == 'input':
+                _reg = Register("%s_%d_inp" % (self.circuit, board_val_reg + counter),
+                                self, counter, board_val_reg + counter, reg_type='input', dev_id=self.dev_id,
+                                major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)
+            else:
+                _reg = Register("%s_%d" % (self.circuit, board_val_reg + counter),
+                                self, counter, board_val_reg + counter, dev_id=self.dev_id,
+                                major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)
             if board_val_reg and self.neuron.datadeps.has_key(board_val_reg + counter):
                 self.neuron.datadeps[board_val_reg + counter] += [_reg]
             elif board_val_reg:
                 self.neuron.datadeps[board_val_reg + counter] = [_reg]
             Devices.register_device(REGISTER, _reg)
             counter+=1
-                
+        
     def parse_feature_uart(self, max_count, m_feature, board_id):
         counter = 0
         while counter < max_count:
@@ -793,11 +799,13 @@ class Board(object):
         while counter < max_count:
             board_val_reg = m_feature['start_reg']
             if 'reg_type' in m_feature and m_feature['reg_type'] == 'input':
-                _reg = Register("%s_%d_inp" % (self.circuit, board_val_reg + counter), self, counter, board_val_reg + counter, reg_type='input', dev_id=self.dev_id,
+                _reg = Register("%s_%d_inp" % (self.circuit, board_val_reg + counter),
+                                self, counter, board_val_reg + counter, reg_type='input', dev_id=self.dev_id,
                                 major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)
             else:
-                _reg = Register("%s_%d" % (self.circuit, board_val_reg + counter), self, counter, board_val_reg + counter, dev_id=self.dev_id,
-                                major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)                
+                _reg = Register("%s_%d" % (self.circuit, board_val_reg + counter),
+                                self, counter, board_val_reg + counter, dev_id=self.dev_id,
+                                major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)
             if board_val_reg and self.neuron.datadeps.has_key(board_val_reg + counter):
                 self.neuron.datadeps[board_val_reg + counter] += [_reg]
             elif board_val_reg:

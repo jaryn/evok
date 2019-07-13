@@ -84,9 +84,9 @@ class HWDict():
                 try:
                     with open(d_path + filen, 'r') as yfile:    
                         self.definitions += [yaml.load(yfile)]
-                        logger.info("YAML Definition loaded: %s, type: %s, definition count %d", filen, len(self.definitions[len(self.definitions)-1]),  len(self.definitions) - 1)
+                        logger.info("YAML Definition loaded: %s, type: %s, definition count %d", filen, self.definitions[len(self.definitions)-1],  len(self.definitions) - 1)
                 except Exception:
-                    pass
+                    logger.exception('Failed to load definition %s', filen)
             elif filen.endswith("BuiltIn") and 'model' in up_globals:
                 try:
                     with open(d_path + filen + "/" + up_globals['model'] + '.yaml', 'r') as yfile:    
