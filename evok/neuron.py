@@ -405,37 +405,11 @@ class Proxy(object):
     def fullcache(self):
         return self.result
 
-class UartBoard(object):
+class UartBoard(Board):
     def __init__(self, Config, circuit, modbus_address, neuron, versions, direct_access=False, major_group=1, dev_id=0):
-        self.alias = ""
-        self.devtype = BOARD
-        self.dev_id = dev_id
-        self.Config = Config
-        self.circuit = circuit
-        self.direct_access = direct_access
-        self.legacy_mode = not (Config.getbooldef('MAIN','use_experimental_api', False))
-        self.neuron = neuron
-        self.major_group = major_group
+        Board.__init__(self, Config, circuit, neuron, versions, major_group, dev_id, direct_access):
         self.modbus_address = modbus_address
-        self.sw = versions[0]
-        self.ndi = (versions[1] & 0xff00) >> 8
-        self.ndo = (versions[1] & 0x00ff)
-        self.nai = (versions[2] & 0xff00) >> 8
-        self.nao = (versions[2] & 0x00f0) >> 4
-        self.nuart = (versions[2] & 0x000f)
-        self.hw = (versions[3] & 0xff00) >> 8
-        self.hwv = (versions[3] & 0x00ff)
-        self.serial = versions[5] + (versions[6] << 16)
-        self.nai1 = self.nai if self.hw != 0 else 1  # full featured AI (with switched V/A)
-        self.nai2 = 0 if self.hw != 0 else 1           # Voltage only AI
 
-    @gen.coroutine
-    def set(self, alias=None):
-        if not alias is None:
-            if Devices.add_alias(alias, self, file_update=True):
-                self.alias = alias
-        return gen.Return(self.full())
-    
     @gen.coroutine
     def initialise_cache(self, cache_definition):
         if cache_definition and (self.neuron.device_name == cache_definition['type']):
@@ -569,25 +543,6 @@ class UartBoard(object):
             else:
                 self.neuron.datadeps[board_val_reg + counter] = [_ai]
             Devices.register_device(AI, _ai)
-            counter+=1
-        
-    def parse_feature_register(self, max_count, m_feature, board_id):
-        counter = 0
-        while counter < max_count:
-            board_val_reg = m_feature['start_reg']
-            if 'reg_type' in m_feature and m_feature['reg_type'] == 'input':
-                _reg = Register("%s_%d_inp" % (self.circuit, board_val_reg + counter),
-                                self, counter, board_val_reg + counter, reg_type='input', dev_id=self.dev_id,
-                                major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)
-            else:
-                _reg = Register("%s_%d" % (self.circuit, board_val_reg + counter),
-                                self, counter, board_val_reg + counter, dev_id=self.dev_id,
-                                major_group=m_feature['major_group'], legacy_mode=self.legacy_mode)
-            if board_val_reg and self.neuron.datadeps.has_key(board_val_reg + counter):
-                self.neuron.datadeps[board_val_reg + counter] += [_reg]
-            elif board_val_reg:
-                self.neuron.datadeps[board_val_reg + counter] = [_reg]
-            Devices.register_device(REGISTER, _reg)
             counter+=1
         
     def parse_feature_uart(self, max_count, m_feature, board_id):
