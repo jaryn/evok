@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+set -e -x
 
 # Reference https://github.com/dhruvvyas90/qemu-rpi-kernel/
 
