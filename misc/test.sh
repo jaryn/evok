@@ -18,6 +18,11 @@ function cleanup {
 }
 
 
+function install_requirements {
+    sudo apt-get install qemu-system-arm
+}
+
+
 function download {
     # From https://blog.agchapman.com/using-qemu-to-emulate-a-raspberry-pi/
     curl -L "$RASPIOS_IMAGE_URL" "$TMPDIR/raspios.zip" | funzip > "$TMPDIR/$RASPIOS_IMAGE_NAME"
@@ -48,6 +53,8 @@ function boot {
 
 
 trap cleanup EXIT
+
+install_requirements
 download
 prepare_disk
 boot
