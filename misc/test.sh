@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x -e
-
 # Reference https://github.com/dhruvvyas90/qemu-rpi-kernel/
 
 function set_versatile_pb_dtb {
@@ -109,6 +107,31 @@ function prepare_disk {
 }
 
 
+function enable_ssh {
+    guestfish -a "$TARGET_IMAGE" -i <<EOF
+mount /dev/sda1 /boot
+touch /boot/ssh
+umount /boot
+
+mkdir /home/pi/.ssh
+copy-in "$HOME/.ssh/id_rsa.pub" /tmp
+mv /tmp/id_rsa.pub /home/pi/.ssh/authorized_keys
+chmod 0644 /home/pi/.ssh/authorized_keys
+EOF
+}
+
+function wait_for_ssh_active {
+  >&2 echo 'Waiting for ssh to become active on the guest.'
+  while ! ssh -o ConnectTimeout=1 pi@localhost -p5022 true; do
+    sleep 10
+  done
+  >&2 echo 'The sshd on the guest is now active.'
+}
+
+function shutdown {
+  ssh pi@localhost -p5022 sudo systemctl poweroff
+}
+
 function boot {
     IMAGE=$1
     qemu-system-arm \
@@ -127,13 +150,19 @@ function boot {
 }
     #-fsdev local,path=/home/jhenner/projects/evok,security_model=passthrough,id=fsdev-fs0,readonly \
 
+# Detect sourcing of this file
+[[ "${BASH_SOURCE[0]}" != "${0}" ]] || {
+  set -e
+  trap cleanup EXIT
 
-trap cleanup EXIT
-
-[ -e "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
-set_versatile_pb_dtb
-set_kernel_4_19_50
-set_raspios_buster
-download
-prepare_disk
-boot
+  [ -e "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
+  set_versatile_pb_dtb
+  set_kernel_4_19_50
+  set_raspios_buster
+  download
+  prepare_disk
+  enable_ssh
+  boot &
+  wait_for_ssh_active
+  shutdown
+}
