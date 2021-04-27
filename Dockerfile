@@ -1,5 +1,4 @@
-FROM debian
-
-RUN apt-get update && apt-get install -y devscripts dh-virtualenv dh-exec
+FROM fedora
 COPY . /evok
-RUN cd /evok && debuild
+RUN sudo dnf install -y qemu-system-arm libguestfs-tools-c
+ENTRYPOINT /evok/misc/test.sh
