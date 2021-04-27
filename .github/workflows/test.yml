@@ -1,5 +1,5 @@
 name: GitHub Actions Demo
-on: [push]
+on: [push, pull_request]
 jobs:
   build_docker_image:
     runs-on: ubuntu-latest
