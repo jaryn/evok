@@ -15,6 +15,9 @@ jobs:
         uses: jaryn/rpi-in-qemu-action@v1
         with:
           fsdev_src_dir: ${{ github.workspace }}
-          ssh_command: mount -t 9p -o trans=virtio,version=9p2000.L rpi_9p_dev /mnt && ls /mnt
-      - run: echo "This job's status is ${{ job.status }}."
+          ssh_command: |
+            sudo mount -t 9p -o trans=virtio,version=9p2000.L rpi_9p_dev /mnt && \
+            sudo apt-get update && sudo apt-get install -y python3-pip && sudo pip install /mnt/
+
+
 
