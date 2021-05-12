@@ -12,11 +12,13 @@ jobs:
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "The workflow is now ready to test your code on the runner."
       - name: Start VM
-        uses: jaryn/rpi-in-qemu-action@v1
+        uses: jaryn/rpi-in-qemu-action@qcow2-runtime-image
         with:
           fsdev_src_dir: ${{ github.workspace }}
+          main_disk_size: 4G
           ssh_command: |
             sudo mount -t 9p -o trans=virtio,version=9p2000.L rpi_9p_dev /mnt && \
+            sudo raspi-config --expand-rootfs && \
             sudo apt-get update && sudo apt-get install -y python3-pip && sudo pip install /mnt/
 
 
