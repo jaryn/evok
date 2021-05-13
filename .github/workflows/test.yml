@@ -17,10 +17,10 @@ jobs:
           fsdev_src_dir: ${{ github.workspace }}
           main_disk_size: 4G
           ssh_command: |
-            sudo mount -t 9p -o trans=virtio,version=9p2000.L rpi_9p_dev /mnt && \
-            sudo raspi-config --expand-rootfs && \
-            sudo /etc/init.d/resize2fs_once start &&
-            sudo apt-get update && sudo apt-get install -y python3-pip && sudo pip install /mnt/
-
-
-
+            sudo mount -t 9p -o trans=virtio,version=9p2000.L rpi_9p_dev /mnt &&
+            #sudo raspi-config --expand-rootfs &&
+            sudo parted /dev/vda -l &&
+            sudo parted /dev/vda resizepart 2 4G &&
+            sudo parted /dev/vda -l &&
+            sudo resize2fs /dev/vda2 &&
+            sudo apt-get update && sudo apt-get install -y python3-pip && sudo pip3 install /mnt/
